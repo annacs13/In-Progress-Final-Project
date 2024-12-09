@@ -1,0 +1,41 @@
+body{
+    background-color: black;
+    color:white;
+    font-family: 'Times New Roman', Times, serif;
+
+}
+    h1, h2, h3, h4, h5, h6{
+    color:gold;
+    font-family:Georgia, 'Times New Roman', Times, serif;
+    font-style: italic;
+    
+    
+    }
+.main-content{
+margin-left: 220px;
+padding: 20px;
+
+}
+
+
+
+.navbar{
+    padding: 10px;
+    display:flex;
+    justify-content: space-around;
+    align-items:center;
+    color: white;
+}
+
+.navbar a{
+    color:white;
+}
+
+.box-model{
+    padding:15px;
+    background-color: pink;
+    border:5px solid blue;
+    margin: 20px;
+
+
+}

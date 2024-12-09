@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Duck Game</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #a0d8f1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+    }
+
+    /* Title Styling */
+    .title {
+      font-size: 36px;
+      font-weight: bold;
+      color: #4CAF50;
+      margin-bottom: 20px;
+    }
+
+    /* Start Button Styling */
+    .start-btn {
+      font-size: 20px;
+      padding: 10px 20px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    .start-btn:hover {
+      background-color: #45a049;
+    }
+
+    /* Game Canvas Styling */
+    #gameCanvas {
+      background-color: #87cefa;
+      border: 2px solid #000;
+      display: none; /* Hide canvas initially */
+    }
+
+    /* Game Over Text Styling */
+    .game-over {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 36px;
+      color: #ff0000;
+      font-weight: bold;
+      display: none; /* Hide game over text initially */
+    }
+
+    /* Restart Button Styling */
+    .restart-btn {
+      position: absolute;
+      top: 60%;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 20px;
+      padding: 10px 20px;
+      background-color: #ff6600;
+      color: white;
+      border: none;
+      cursor: pointer;
+      display: none; /* Hide restart button initially */
+    }
+
+    .restart-btn:hover {
+      background-color: #ff4500;
+    }
+
+    /* Obstacle Counter Styling */
+    .obstacle-counter {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      font-size: 24px;
+      color: #000;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Title -->
+<div class="title">Duck River Crossing Challenge</div>
+
+<!-- Start Button -->
+<button class="start-btn" id="startBtn">Start Game</button>
+
+<!-- Game Canvas -->
+<canvas id="gameCanvas" width="800" height="600"></canvas>
+
+<!-- Game Over Text -->
+<div class="game-over" id="gameOverText">Game Over</div>
+
+<!-- Restart Button -->
+<button class="restart-btn" id="restartBtn">Restart</button>
+
+<!-- Obstacle Counter -->
+<div class="obstacle-counter" id="obstacleCounter">Obstacles Cleared: 0</div>
+
+<script>
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+  const gameOverText = document.getElementById('gameOverText');
+  const restartBtn = document.getElementById('restartBtn');
+  const startBtn = document.getElementById('startBtn');
+  const obstacleCounter = document.getElementById('obstacleCounter');
+
+  const duck = {
+    x: canvas.width / 2 - 20,
+    y: canvas.height - 50,
+    width: 40,
+    height: 40,
+    speed: 15,  // Fast duck speed
+    color: 'yellow'
+  };
+
+  const obstacles = [];
+  const obstacleSpeed = 4;
+  let isGameOver = false;
+
+  // Variables to track obstacle count and interval
+  let obstacleCount = 0;
+  let clearedObstacles = 0;
+  let obstacleTimer = null;
+  let currentInterval = 2000; // Start with 2 seconds for the first 10 obstacles
+
+  // Event listener for controlling the duck
+  document.addEventListener('keydown', (e) => {
+    if (isGameOver) return;
+
+    if (e.key === 'ArrowLeft' && duck.x > 0) {
+      duck.x -= duck.speed;
+    } else if (e.key === 'ArrowRight' && duck.x < canvas.width - duck.width) {
+      duck.x += duck.speed;
+    }
+  });
+
+  // Function to generate obstacles
+  function createObstacle() {
+    const maxObstacleWidth = 200;  // Cap the max width at 200 pixels
+    const width = Math.random() * (maxObstacleWidth - 30) + 30;  // Ensure width between 30 and maxObstacleWidth
+    const x = Math.random() * (canvas.width - width);
+    obstacles.push({ x, y: -50, width, height: 30 });
+
+    obstacleCount++;
+
+    // Adjust the interval based on the obstacle count
+    if (obstacleCount >= 10 && obstacleCount < 20) {
+      setNewInterval(1500); // After 10 obstacles, make them come every 1.5 seconds
+    } else if (obstacleCount >= 20 && obstacleCount < 30) {
+      setNewInterval(1000); // After 20 obstacles, make them come every 1 second
+    } else if (obstacleCount >= 30 && obstacleCount < 40) {
+      setNewInterval(750); // After 30 obstacles, make them come every 0.75 seconds
+    } else if (obstacleCount >= 40 && obstacleCount < 50) {
+      setNewInterval(500); // After 40 obstacles, make them come every 0.5 seconds
+    }
+  }
+
+  // Function to update the game state
+  function update() {
+    if (isGameOver) return;
+
+    // Clear the canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Draw the duck as a yellow rectangle
+    ctx.fillStyle = duck.color;
+    ctx.fillRect(duck.x, duck.y, duck.width, duck.height);
+
+    // Move obstacles
+    for (let i = 0; i < obstacles.length; i++) {
+      const obstacle = obstacles[i];
+      obstacle.y += obstacleSpeed;
+
+      // Draw obstacle
+      ctx.fillStyle = '#8b4513'; // Brown color for obstacles
+      ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+
+      // Check for collision with the duck
+      if (
+        duck.x < obstacle.x + obstacle.width &&
+        duck.x + duck.width > obstacle.x &&
+        duck.y < obstacle.y + obstacle.height &&
+        duck.y + duck.height > obstacle.y
+      ) {
+        isGameOver = true;
+        gameOverText.style.display = 'block';
+        restartBtn.style.display = 'block';
+        clearInterval(obstacleTimer); // Stop obstacle creation when game is over
+        break;
+      }
+
+      // If the obstacle moves off the screen, increment the counter
+      if (obstacle.y > canvas.height) {
+        obstacles.splice(i, 1);
+        clearedObstacles++; // Increase cleared obstacles count
+        obstacleCounter.textContent = `Obstacles Cleared: ${clearedObstacles}`; // Update counter
+        i--; // Adjust index as we removed the obstacle
+      }
+    }
+
+    // Request next frame
+    if (!isGameOver) {
+      requestAnimationFrame(update);
+    }
+  }
+
+  // Function to change the interval dynamically
+  function setNewInterval(newInterval) {
+    if (newInterval !== currentInterval) {
+      currentInterval = newInterval;
+
+      // Clear and reset the interval
+      clearInterval(obstacleTimer);
+      obstacleTimer = setInterval(createObstacle, currentInterval);
+    }
+  }
+
+  // Function to start the game
+  function startGame() {
+    isGameOver = false;
+    obstacles.length = 0;
+    duck.x = canvas.width / 2 - 20;
+    obstacleCount = 0;
+    clearedObstacles = 0; // Reset cleared obstacles counter
+    currentInterval = 2000; // Reset to 2 seconds for the first 10 obstacles
+    gameOverText.style.display = 'none';
+    restartBtn.style.display = 'none';
+
+    // Hide the start button
+    startBtn.style.display = 'none';
+
+    // Show the game canvas
+    canvas.style.display = 'block';
+
+    // Update obstacle counter
+    obstacleCounter.textContent = `Obstacles Cleared: 0`;
+
+    // Start the obstacle timer with the initial interval (2 seconds)
+    obstacleTimer = setInterval(createObstacle, currentInterval);
+
+    update();
+  }
+
+  // Event listener for restarting the game
+  restartBtn.addEventListener('click', startGame);
+
+  // Event listener for starting the game
+  startBtn.addEventListener('click', startGame);
+
+</script>
+
+</body>
+</html>
+
+
+
+
+
+
+
